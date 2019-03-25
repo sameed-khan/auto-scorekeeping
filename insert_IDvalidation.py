@@ -38,19 +38,19 @@ competitors["competitions"] = competitors[competitors.columns[9:]].apply(
 
 # Dict that matches up each competition name EXACTLY as it is listed in the csv file to corresponding eballot URL
 COMPETITION_DICT = {
-    # "2D Islamic Art": "https://docs.google.com/forms/d/19GW_boa9Wbzf4VMp5FRiogFDNRZFhuQ8S7sRrn_PgVw/edit?usp=sharing",
-    # "3D Islamic Art": "https://docs.google.com/forms/d/109_8oJBfmgyiFvSiQ9rOcyPYmNmzaco25cpPOjifLDc/edit?usp=sharing",
-    # "Culinary Arts": "https://docs.google.com/forms/d/1yPSjuWIcsp_pyTmnIMHsq1s_i_ZpEdYj4ipnalfUatc/edit?usp=sharing",
-    # "Fashion Design": "https://docs.google.com/forms/d/1JAkj8_KG5Lm7lbPxb8ms5VOmZMjt7pnt8vEsYe63SAs/edit?usp=sharing",
-    # "Graphic Design": "https://docs.google.com/forms/d/10NyfRnqwLg7knOoa02ST52Twk4Fw1C-tNf4b-6OeETs/edit?usp=sharing",
-    # "Photography": "https://docs.google.com/forms/d/1k69ist95_Y2A0A3XgCS6ccn3qHFPFciUeOOupEQQZ7U/edit?usp=sharing",
-    # "Scrapbook": "https://docs.google.com/forms/d/14g5SICPmpMXoeGl6C34BrjjrtFj6i15t4dG0M8MnbLw/edit?usp=sharing",
-    #
-    # "Prepared Essay": "https://docs.google.com/forms/d/1hQ5g3nTasTWp6BdxtrFrn7mdAMW2E9ABMsakDWm0v5E/edit?usp=sharing",
-    # "Extemporaneous Speaking": "https://docs.google.com/forms/d/1KfQd3P_j6-k5TTwfmc9Va_XU-RWWpY7-ZF1KRDKEOg0/edit?usp=sharing",
-    # "Extemporaneous Essay": "https://docs.google.com/forms/d/149v982uTaYlyWBbDseB72qmQBF-zbmPcGGSPHRsjWeQ/edit?usp=sharing",
-    # "Original Oratory": "https://docs.google.com/forms/d/1TOkjclZ66ODHtGA5hHIiyy5VKblvrV4Lqka3NMRLDgc/edit?usp=sharing",
-    # "Poetry Literature": "https://docs.google.com/forms/d/1bmHKzDYKJI9YlHMBVMwHoA1LgeQJcJDUB81jHz4ItQE/edit?usp=sharing",
+    "2D Islamic Art": "https://docs.google.com/forms/d/19GW_boa9Wbzf4VMp5FRiogFDNRZFhuQ8S7sRrn_PgVw/edit?usp=sharing",
+    "3D Islamic Art": "https://docs.google.com/forms/d/109_8oJBfmgyiFvSiQ9rOcyPYmNmzaco25cpPOjifLDc/edit?usp=sharing",
+    "Culinary Arts": "https://docs.google.com/forms/d/1yPSjuWIcsp_pyTmnIMHsq1s_i_ZpEdYj4ipnalfUatc/edit?usp=sharing",
+    "Fashion Design": "https://docs.google.com/forms/d/1JAkj8_KG5Lm7lbPxb8ms5VOmZMjt7pnt8vEsYe63SAs/edit?usp=sharing",
+    "Graphic Design": "https://docs.google.com/forms/d/10NyfRnqwLg7knOoa02ST52Twk4Fw1C-tNf4b-6OeETs/edit?usp=sharing",
+    "Photography": "https://docs.google.com/forms/d/1k69ist95_Y2A0A3XgCS6ccn3qHFPFciUeOOupEQQZ7U/edit?usp=sharing",
+    "Scrapbook": "https://docs.google.com/forms/d/14g5SICPmpMXoeGl6C34BrjjrtFj6i15t4dG0M8MnbLw/edit?usp=sharing",
+
+    "Prepared Essay": "https://docs.google.com/forms/d/1hQ5g3nTasTWp6BdxtrFrn7mdAMW2E9ABMsakDWm0v5E/edit?usp=sharing",
+    "Extemporaneous Speaking": "https://docs.google.com/forms/d/1KfQd3P_j6-k5TTwfmc9Va_XU-RWWpY7-ZF1KRDKEOg0/edit?usp=sharing",
+    "Extemporaneous Essay": "https://docs.google.com/forms/d/149v982uTaYlyWBbDseB72qmQBF-zbmPcGGSPHRsjWeQ/edit?usp=sharing",
+    "Original Oratory": "https://docs.google.com/forms/d/1TOkjclZ66ODHtGA5hHIiyy5VKblvrV4Lqka3NMRLDgc/edit?usp=sharing",
+    "Poetry Literature": "https://docs.google.com/forms/d/1bmHKzDYKJI9YlHMBVMwHoA1LgeQJcJDUB81jHz4ItQE/edit?usp=sharing",
     "Poetry Spoken Word": "https://docs.google.com/forms/d/1y4s_ToN_70Q0R8H5LJhEsoBEQNySptgEuGtkoP0NpQw/edit?usp=sharing",
     "American Sign Language": "https://docs.google.com/forms/d/1Xo9BtEakShfZlDJMxA0xhDNEv1x0z_Wh68ozsXR_cK4/edit?usp=sharing",
     "Short Fictional Story": "https://docs.google.com/forms/d/1XE1g66JDvOAEhVOYESeQTu1LJXclaNG21yOuiR-qsvQ/edit?usp=sharing",
@@ -67,9 +67,9 @@ COMPETITION_DICT = {
 }
 
 GROUP_COMPS_DICT = {
-#    "Business Venture": "https://docs.google.com/forms/d/1NBuVoxGVd-4wRb-zoega4eo4P2u55_WmEJxVO3m6dHU/edit?usp=sharing",
-#    "Community Service": "https://docs.google.com/forms/d/1-2urfxXGdTUgXmHkhDVSsyi-ZeRJTmMwx28y0Eky29M/edit?usp=sharing",
-#    "Mobile Apps": "https://docs.google.com/forms/d/14D9Ayb_kcHImC1K4pKX0UxdtIT91CcGDkuLfXRIVfFI/edit?usp=sharing",
+    "Business Venture": "https://docs.google.com/forms/d/1NBuVoxGVd-4wRb-zoega4eo4P2u55_WmEJxVO3m6dHU/edit?usp=sharing",
+    "Community Service": "https://docs.google.com/forms/d/1-2urfxXGdTUgXmHkhDVSsyi-ZeRJTmMwx28y0Eky29M/edit?usp=sharing",
+    "Mobile Apps": "https://docs.google.com/forms/d/14D9Ayb_kcHImC1K4pKX0UxdtIT91CcGDkuLfXRIVfFI/edit?usp=sharing",
     "Science Fair": "https://docs.google.com/forms/d/11k2iBJR2NNiopqgXXNllYdliLpQkeZnVTEtNZKcpdfM/edit?usp=sharing",
     "Short Film": "https://docs.google.com/forms/d/1Zzn2_K14lpaYtjXhdXo45G00vgPiKW5I5qPmqmISQMU/edit?usp=sharing",
     "Social Media": "https://docs.google.com/forms/d/1-upbEuCKLaR59DqMLi0cBSTfYAjO4fPQO4Jq_CWtJqA/edit?usp=sharing",
