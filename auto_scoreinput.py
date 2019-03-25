@@ -5,12 +5,26 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
 # The purpose of this script is to automatically take information from eballots and automatically input it into the
-# Adderpit scorekeeping page
+# Adderpit scorekeeping page. This script only supports eballots competitions and does not support Brackets
+# or Knowledge Test competitions. 
 
+#some gspread stuff to get things running
 scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
 creds = ServiceAccountCredentials.from_json_keyfile_name('client_secret.json', scope)
 client = gspread.authorize(creds)
+
 # Creating and preparing the competitor information table
+# mist-registration.csv is read in as a pandas dataframe
+# Gender-specific competitions are altered in the dataframe to be designated as such.
+# Example: "Quran Memorization Level 1" for a male is designated "Quran Memorization Level 1B", and "...Level 1S" for a sister
+# similarly, "Nasheed" becomes "NasheedB" or "NasheedS" depending on the gender of the competitor.
+
+# Columns are merged so that competitions aren't divided by category but are merged together into one column
+# Example: art      writingOratory      groupProjects
+#          2D Art   Spoken Word         ImprovS (for sisters improv, ImprovB for brothers improv)
+# becomes one column:
+#                   competitions
+#                   2D Art,Spoken Word,ImprovS
 competitors = pd.read_csv("mist-registration.csv", na_filter=False)
 for idx in range(0, len(competitors)):
     competitor = competitors.iloc[idx, :]
@@ -32,10 +46,15 @@ for idx in range(0, len(competitors)):
             competitor.sports = competitor.sports + "S"
         if competitor.brackets == "Improv":
             competitor.brackets = competitor.brackets + "S"
+           
+# merging competition columns
 competitors["competitions"] = competitors[competitors.columns[9:]].apply(
     lambda x: ','.join(x.dropna().astype(str)),
     axis=1)
 
+# constant dictonary used to map competition names (EXACTLY AS FOUND IN THE ADDERPIT EXCEL OUTPUT - except for Quran Memorization
+# and Nasheed and other altered competitions) to the corresponding eballot scorecard. Considerations for future: have script read in csv
+# via pandas or other package and create this dictionary to work with the rest of the code. 
 SPREADSHEET_URLS = {
     #the below is a test spreadsheet, do not use
     "2D Islamic Art":"https://docs.google.com/spreadsheets/d/180W8Jwnp4LQx0x1sTI2HG6tVCqsZ5RzOVG2eSMeZJQM/edit#gid=529048580"
@@ -77,13 +96,21 @@ SPREADSHEET_URLS = {
 }
 
 def pull_ID(comp_name):
+""" @param comp_name: string of competition name that must match with the SPREADSHEET_URLS dictionary
+    @return: list of MIST IDs as strings sorted in ascending order
+"""
     foo = competitors.loc[competitors.competitions.str.contains(comp_name)].mist_id
     competitor_ids = [int(id[5:]) for id in foo]
     competitor_ids.sort()
     return [str(id) for id in competitor_ids]
 
 def insert_scores(comp_name, score_dict):
-    """all this does is navigate to the score input screen"""
+""" @param comp_name: string of competition name that must match with the SPREADSHEET_URLS dictionary
+    @param score_dict: dictionary of 'competitor_MIST_ID':(score_from_judge1, score_from_judge2_, score_from_judge3)
+    @return: no return value, function navigates to correct adderpit competition and inputs scores from eballot scorecard
+    into adderpit.
+"""
+    # navigate to adderpit scorekeeping interface
     browser = Browser('chrome')
     browser.visit("https://web.adderpit.com/MIST")
     browser.find_by_name('username').fill('skhan@getmistified.com')
@@ -92,11 +119,15 @@ def insert_scores(comp_name, score_dict):
     time.sleep(0.300)
     browser.find_by_css("a[href='/MIST/ScoreKeeping']").click()
     time.sleep(2.000)
-
+    
+    # Choosing which competition to click and enter for. Adderpit happens to have the css for each competition's score input
+    # conveniently formatted to be "Input Scores for [competition name here]"
     css_selector = "a[title='Input Scores for " + comp_name + "']"
     browser.find_by_css(css_selector).click()
     time.sleep(2.000)
-
+    
+    # In the score input interface, each entry area is conveniently css formatted to be judge_0_[competitor ID]"
+    # Not sure if this changes if there are actual judges submitted.
     css_name_list=["judge_0_", "judge_1_", "judge_2_"]
     for comp_id in score_dict:
         idx = 0
@@ -108,7 +139,8 @@ def insert_scores(comp_name, score_dict):
     time.sleep(5.000)
     browser.find_by_name('submit').click()
     time.sleep(3.000)
-
+    
+# This is the __main__ function for this script
 for competition in SPREADSHEET_URLS:
     print("Opening: ", competition)
     sh = client.open_by_url(SPREADSHEET_URLS[competition])
