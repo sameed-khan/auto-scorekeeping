@@ -1,17 +1,20 @@
+# The purpose of this script is to automatically take information from eballots and automatically input it into the
+# Adderpit scorekeeping page
+
 from splinter import Browser
 import pandas as pd
 import time
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
-# The purpose of this script is to automatically take information from eballots and automatically input it into the
-# Adderpit scorekeeping page
-
 scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
 creds = ServiceAccountCredentials.from_json_keyfile_name('client_secret.json', scope)
 client = gspread.authorize(creds)
 # Creating and preparing the competitor information table
 competitors = pd.read_csv("mist-registration.csv", na_filter=False)
+# Creating competitions dataframe for conversion to dictionary
+competitions = pd.read_csv("sample_comps.csv")
+
 for idx in range(0, len(competitors)):
     competitor = competitors.iloc[idx, :]
     if competitor.gender == "Male":
@@ -36,9 +39,11 @@ competitors["competitions"] = competitors[competitors.columns[9:]].apply(
     lambda x: ','.join(x.dropna().astype(str)),
     axis=1)
 
-SPREADSHEET_URLS = {
+# will be used for the future
+SPREADSHEET_URLS = {competitions.iloc[:, 0][idx]:competitions.iloc[:, 1][idx] for idx in range(0, len(competitions))}
+# SPREADSHEET_URLS = {
     #the below is a test spreadsheet, do not use
-    "2D Islamic Art":"https://docs.google.com/spreadsheets/d/180W8Jwnp4LQx0x1sTI2HG6tVCqsZ5RzOVG2eSMeZJQM/edit#gid=529048580"
+    # "2D Islamic Art":"https://docs.google.com/spreadsheets/d/180W8Jwnp4LQx0x1sTI2HG6tVCqsZ5RzOVG2eSMeZJQM/edit#gid=529048580"
     #"2D Islamic Art":"https://docs.google.com/spreadsheets/d/1y0vycIj3STQ7RHsOlJgTu4X4E2aRQyrhEDDNN6PBYm0/edit#gid=529048580",
     #"3D Islamic Art":"https://docs.google.com/spreadsheets/d/1aBV6hjJ9Zv7btKeR_XcOe2uVik34-rD2_23-riut6R8/edit#gid=1666802291",
     # "Culinary Arts":"https://docs.google.com/spreadsheets/d/1X0BB5rYVoeaBME_kujFhefn1k2QUmjQSy5fa13vynRw/edit#gid=931587849",
@@ -56,7 +61,7 @@ SPREADSHEET_URLS = {
     # "Prepared Essay":"https://docs.google.com/spreadsheets/d/15MvjS2TTV96TpxKpPeal8JqJH74O00p3CgRSMmeYeng/edit",
     # "Short Fictional Story":"https://docs.google.com/spreadsheets/d/17F1FCHFvo6ORz4TXRxtHRkRn1hg4DdAnqJ1SSgC9zBI/edit",
     #
-    # "NasheedB":"https://docs.google.com/spreadsheets/d/1NmYXELe62U1cSUj3QPbO2oDcvb6_5DVCDmCs08B5Cy4/edit",
+    # "NasheedB":"https://docs.google.com/spreadsheets/d/1NmYXELe62U1cSUj3QPbO2o    Dcvb6_5DVCDmCs08B5Cy4/edit",
     # "Business Venture":"https://docs.google.com/spreadsheets/d/1xC_EhCz0P3TKO4x-mMfliuQf6nTQzSeuZ-lKcpSTJrk/edit#gid=2083081288",
     # "Community Service":"https://docs.google.com/spreadsheets/d/1WsbRRd_TAtzHjXT9J9NW2BdzF8thC_DP-JAgsxdq4tg/edit#gid=362809383",
     # "Mobile Apps":"https://docs.google.com/spreadsheets/d/1oECHvu_uO3Sk768B0khzA7uCT8kZlXqusSwba-mrGPE/edit#gid=2139371314",
@@ -74,16 +79,25 @@ SPREADSHEET_URLS = {
     # "Quran Memorization Level 4B":"https://docs.google.com/spreadsheets/d/1qv62Wo81ULciA396Q2owfwZvfDVQW6vpU2R-yzs9iho/edit#gid=400572937",
     # "Quran Memorization Level 4S":"https://docs.google.com/spreadsheets/d/1XDuOLd9NTBRNI4_ytVsyQz6WyUE8sZIzczjUcDFyzcg/edit#gid=1070542050",
 
-}
+# }
 
-def pull_ID(comp_name):
+
+def pull_id(comp_name):
+    """ @param comp_name: EXACT Adderpit string of the competition name being scored
+        @return: list of MIST IDs sorted in ascending order for that competition, as strings
+    """
     foo = competitors.loc[competitors.competitions.str.contains(comp_name)].mist_id
     competitor_ids = [int(id[5:]) for id in foo]
     competitor_ids.sort()
     return [str(id) for id in competitor_ids]
 
+
 def insert_scores(comp_name, score_dict):
-    """all this does is navigate to the score input screen"""
+    """ @param comp_name: EXACT Adderpit string of the competition name being scored
+        @param score_dict: a string:tuple dictionary matching IDs to a tuple of 3 integers
+        Example: MIST_ID:(score1, score2, score3) --> '5107-48972':(98, 65, 89)
+        @return: None, function accesses Adderpit and inserts scores into fields
+    """
     browser = Browser('chrome')
     browser.visit("https://web.adderpit.com/MIST")
     browser.find_by_name('username').fill('skhan@getmistified.com')
@@ -102,21 +116,25 @@ def insert_scores(comp_name, score_dict):
         idx = 0
         for css_name in css_name_list:
             css_name = css_name+comp_id
-            print(css_name)
+#            print(css_name)
             browser.find_by_name(css_name).fill(str(score_dict[comp_id][idx]))
             idx += 1
     time.sleep(5.000)
     browser.find_by_name('submit').click()
     time.sleep(3.000)
 
+
 for competition in SPREADSHEET_URLS:
     print("Opening: ", competition)
-    sh = client.open_by_url(SPREADSHEET_URLS[competition])
-    ws = sh.worksheet("Final Score & Ranking")
-    results_id = ws.range('A4:D80')
-    pull_ID(competition)
+    results_id = client.open_by_url(SPREADSHEET_URLS[competition]).worksheet("Final Score & Ranking").range('A4:D80')
+    pull_id(competition)
     row_dict={}
-    for id in pull_ID(competition):
-        row_dict.update({id:(ws.cell(cell.row, 2).value, ws.cell(cell.row, 3).value, ws.cell(cell.row, 4).value)
-                      for cell in results_id if id in cell.value})
+    id_idx = 0 #index variable for tracking at which point the competitor id is found in results_id
+    for id in pull_id(competition):
+        id_idx = 0
+        for cell in results_id:
+            id_idx += 1
+            if id in cell.value:
+                row_dict.update({id:(results_id[(id_idx)].value, results_id[(id_idx+1)].value, results_id[(id_idx+2)].value)})
+    print(row_dict)
     insert_scores(competition, row_dict)
