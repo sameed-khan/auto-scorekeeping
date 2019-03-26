@@ -6,8 +6,8 @@ Contains two scripts:
         1. Example of dict entry would be "2D Islamic Art":"https://forms.google.com/...."
 
 2. **auto_scoreinput.py**
-    1. Currently uses a dict of "competition_name":"spreadsheet_url" in order to access eballot scorecards. Future improvements would use a specifically formatted .csv file that would be converted into a dict in script. Is there a way to scrape these from GDrive, or specifically format eballot names to match them with the Adderpit designations?
-        1. Example of dict entry would be "2D Islamic Art":"https://spreadsheets.google.com/..."
+    1.Currently uses a .csv file for each competition. Refer to sample_comps.csv for an example of what the format looks like.
+        1. Example of csv entry would be "2D Islamic Art" in "competition column", "https://spreadsheets.google.com/..." in url column.
         2. client_secret.json is required for oauth2client validation/Google Drive API credentials/spreadsheet access credentials
 
 ## Other Items
