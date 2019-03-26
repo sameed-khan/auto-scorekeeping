@@ -1,6 +1,7 @@
 # auto-scorekeeping
 Contains scripts in order to automate the eballot to adderpit scorekeeping process.
 Contains two scripts:
+
 **insert_IDvalidation.py** - loops through all the ballots and inserts the competitor regular expression validation for each one. 
     
 1. Currently uses a dict of "competition_name":"ballot_url" in order to access ballots. Future improvements would use a specifically formatted .csv file that would be converted into a dict in script.
