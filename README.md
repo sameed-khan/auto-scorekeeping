@@ -12,4 +12,4 @@ Contains two scripts:
 
 ## Other Items
 * **mist-registration.csv** contains slightly formatted data pulled from Adderpit. DO NOT CHANGE this file -- all data structural modifications should take place in script. All competition names should match text EXACTLY as is in this spreadsheet. This spreadsheet is used for accessing MIST IDs for competitor by competitions, along with other associated data. 
-* Further entries will detail instructions for implementing each script. 
+* Further entries will detail instructions for how to use each script. 
