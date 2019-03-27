@@ -15,6 +15,15 @@ competitors = pd.read_csv("mist-registration.csv", na_filter=False)
 # Creating competitions dataframe for conversion to dictionary
 competitions = pd.read_csv("sample_comps.csv")
 
+# Import and clean up the data table
+# Each row is a competitor, and each column is a property of the competitor (i.e: competitor has properties (name, etc)
+# Each row is parsed so that gender-specific competitions are labeled as such
+# Columns are merged so that competitions aren't divided by category but are merged together into one column
+# Example: art      writingOratory      groupProjects
+#          2D Art   Spoken Word         ImprovS (for sisters improv, ImprovB for brothers improv)
+# becomes one column:
+#                   competitions
+#                   2D Art,Spoken Word,ImprovS
 for idx in range(0, len(competitors)):
     competitor = competitors.iloc[idx, :]
     if competitor.gender == "Male":
@@ -80,24 +89,36 @@ SPREADSHEET_URLS = {competitions.iloc[:, 0][idx]:competitions.iloc[:, 1][idx] fo
     # "Quran Memorization Level 4S":"https://docs.google.com/spreadsheets/d/1XDuOLd9NTBRNI4_ytVsyQz6WyUE8sZIzczjUcDFyzcg/edit#gid=1070542050",
 
 # }
-
+GENDER_SPEC_COMPS = ["Quran", "Nasheed", "Improv"]
+GROUP_COMPS = ["Nasheed", "Business Venture", "Community Service", "Mobile Apps", "Science Fair", "Short Film"
+               "Social Media", "Improv", "Debate", "MIST Bowl"]
 
 def pull_id(comp_name):
     """ @param comp_name: EXACT Adderpit string of the competition name being scored
         @return: list of MIST IDs sorted in ascending order for that competition, as strings
     """
     foo = competitors.loc[competitors.competitions.str.contains(comp_name)].mist_id
+    for comp in GROUP_COMPS:
+        if comp in comp_name:
+            competitor_ids = [int(id[:4]) for id in foo]
+            competitor_ids.sort()
+            return list(dict.fromkeys([str(id) for id in competitor_ids]))
     competitor_ids = [int(id[5:]) for id in foo]
     competitor_ids.sort()
-    return [str(id) for id in competitor_ids]
+    return list(dict.fromkeys([str(id) for id in competitor_ids]))
 
 
-def insert_scores(comp_name, score_dict):
-    """ @param comp_name: EXACT Adderpit string of the competition name being scored
+def insert_scores(comp_name, score_dict, gender=None):
+    """ @param comp_name: EXACT Adderpit string of the competition name being scored (with B or S at the end if
+        gender-specific competition)
         @param score_dict: a string:tuple dictionary matching IDs to a tuple of 3 integers
         Example: MIST_ID:(score1, score2, score3) --> '5107-48972':(98, 65, 89)
         @return: None, function accesses Adderpit and inserts scores into fields
     """
+    # Drop the 'B' or the 'S' off the comp_name if the competition is gender-specific
+    if gender == 1 or gender == 2:
+        comp_name = comp_name[:-1]
+
     browser = Browser('chrome')
     browser.visit("https://web.adderpit.com/MIST")
     browser.find_by_name('username').fill('skhan@getmistified.com')
@@ -105,18 +126,28 @@ def insert_scores(comp_name, score_dict):
     browser.find_by_name('submit').click()
     time.sleep(0.300)
     browser.find_by_css("a[href='/MIST/ScoreKeeping']").click()
-    time.sleep(2.000)
-
+    time.sleep(0.300)
     css_selector = "a[title='Input Scores for " + comp_name + "']"
     browser.find_by_css(css_selector).click()
     time.sleep(2.000)
+
+    # caveat to navigate to correct interface for gender-segregated competitions
+    for comp in GENDER_SPEC_COMPS:
+        if comp in comp_name:
+            browser.find_by_css("a[title='Unified']").click()
 
     css_name_list=["judge_0_", "judge_1_", "judge_2_"]
     for comp_id in score_dict:
         idx = 0
         for css_name in css_name_list:
             css_name = css_name+comp_id
-#            print(css_name)
+            # more accounting for gender-specific competitions. The CSS title for a gender-specific score entry field is
+            # "judge_X_MIST_ID_1 (for a male, 2 at the end for a female)
+            if gender == 1:
+                css_name = css_name + "_1"
+            if gender == 2:
+                css_name = css_name + "_2"
+            print(css_name)
             browser.find_by_name(css_name).fill(str(score_dict[comp_id][idx]))
             idx += 1
     time.sleep(5.000)
@@ -126,15 +157,26 @@ def insert_scores(comp_name, score_dict):
 
 for competition in SPREADSHEET_URLS:
     print("Opening: ", competition)
-    results_id = client.open_by_url(SPREADSHEET_URLS[competition]).worksheet("Final Score & Ranking").range('A4:D80')
-    pull_id(competition)
+    comp_gender = 0  # flag used to specified for male or female gender specific competitions
+    for modname_comp in GENDER_SPEC_COMPS:
+        if modname_comp in competition:
+            if competition[-1:] == "B":
+                comp_gender = 1
+            if competition[-1:] == "S":
+                comp_gender = 2
+    print(comp_gender)
+    results_id = client.open_by_url(SPREADSHEET_URLS[competition]).worksheet("Final Score & Ranking").range('A4:D40')
+    quick_results = [results_id[i] for i in range(0, len(results_id), 4)]
+    print(results_id)
     row_dict={}
-    id_idx = 0 #index variable for tracking at which point the competitor id is found in results_id
+    id_idx = 0  # index variable for tracking at which point the competitor id is found in results_id
     for id in pull_id(competition):
         id_idx = 0
-        for cell in results_id:
-            id_idx += 1
+        for cell in quick_results:
+            print(pull_id(competition))
             if id in cell.value:
-                row_dict.update({id:(results_id[(id_idx)].value, results_id[(id_idx+1)].value, results_id[(id_idx+2)].value)})
+                row_dict.update({id:(results_id[(id_idx+1)].value, results_id[(id_idx+2)].value, results_id[(id_idx+3)].value)})
+                break
+            id_idx += 4
     print(row_dict)
-    insert_scores(competition, row_dict)
+    insert_scores(competition, row_dict, comp_gender)
